@@ -33,7 +33,7 @@ Role 枚举：admin/analyst/viewer；JobStatus：queued/running/completed/failed
 
 ## 环境变量与 Docker
 COMPOSE_PROJECT_NAME=pick-paired；FRONTEND_PORT=18205；BACKEND_PORT=19205；DB_PORT=17705；DB_PASSWORD、JWT_SECRET 见 .env.example；SEED_DEMO 默认 true。共享命名产物卷供后端下载与 worker 写入，数据库/Redis 各持久卷。
-恰好五服务均有健康检查。Redis 队列加 SQL 排队状态兜底；worker 按 next_run 生成本地收件箱文件。周期 60 秒至 30 天。分发结果为批准分析的固定快照；若需新数据重新计算并建立新计划。当前不连接邮件或企业聊天。
+恰好五服务均有健康检查。Redis 队列加 SQL 排队状态兜底；worker 按 next_run 到期时点归档：每个计划的每个到期时点只产生一份归档（report+时点唯一约束、文件名按时点确定、临时文件原子落盘），CSV 与 JSON 来自同一次批准快照并互留 SHA256 指纹；失败保留原因可在收件箱重试，重启自动补完中断的归档，不重复已成功的那份。周期 60 秒至 30 天。分发结果为批准分析的固定快照；若需新数据重新计算并建立新计划。当前不连接邮件或企业聊天。
 错误响应、请求编号、Redis 每 IP 每分钟 240 次限流、JWT 和数据库操作审计。演示密钥与密码仅供本机模拟；生产部署前配置独立密钥与账号。
 
 ## 数据与验收
